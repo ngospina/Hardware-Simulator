@@ -153,6 +153,27 @@ public class ScriptTokenizer {
     }
 
     /**
+     * Constructs a new ScriptTokenizer with standard input reader.
+     */
+    public ScriptTokenizer() throws ControllerException {
+        try {
+            parser = new StreamTokenizer(System.in);
+            parser.parseNumbers();
+            parser.slashSlashComments(true);
+            parser.slashStarComments(true);
+            parser.wordChars(':', ':');
+            parser.wordChars('%', '%');
+            parser.wordChars('[', '[');
+            parser.wordChars(']', ']');
+            parser.nextToken();
+            initKeywords();
+            initSymbols();
+        } catch (IOException ioe) {
+            throw new ControllerException("Error while initializing script for reading");
+        }
+    }
+
+    /**
      * Advances the parser to the next token
      * May only be called when hasMoreToken() == true
      */

@@ -215,6 +215,37 @@ public class HackController
     // The default script file object
     private File defaultScriptFile;
 
+    // true if using standard input / standard output
+    private boolean stdio;
+
+    /**
+     * Constructs a new HackController without a given script file name.
+     * The script will be read from standard input, executed and the final
+     * result will be printed to standard output.
+     * output-file and compare-to commands will be ignored.
+     */
+    public HackController(HackSimulator simulator) {
+        this.simulator = simulator;
+        stdio = true;
+        animationMode = NO_DISPLAY_CHANGES;
+        simulator.setAnimationMode(animationMode);
+        simulator.addListener(this);
+        breakpoints = new Vector();
+
+        try {
+            loadNewScript(false);
+        } catch (ScriptException se) {
+            displayMessage(se.getMessage(), true);
+        } catch (ControllerException ce) {
+            displayMessage(ce.getMessage(), true);
+        }
+
+        fastForwardRunning = true;
+
+        while (fastForwardRunning)
+            singleStep();
+    }
+
     /**
      * Constructs a new HackController with the given script file name.
      * The script will be executed and the final result will be printed.
@@ -225,6 +256,7 @@ public class HackController
             displayMessage(scriptFileName + " doesn't exist", true);
 
         this.simulator = simulator;
+        stdio = false;
         animationMode = NO_DISPLAY_CHANGES;
         simulator.setAnimationMode(animationMode);
         simulator.addListener(this);
@@ -516,7 +548,7 @@ public class HackController
 
                         comparisonFile.close();
                     }
-                    else
+                    else if (!stdio)
                         displayMessage("End of script", false);
                 } catch (IOException ioe) {
                     throw new ControllerException("Could not read comparison file");
@@ -553,23 +585,29 @@ public class HackController
 
     // Executes the controller's output-file command.
     private void doOutputFileCommand(Command command) throws ControllerException {
-        currentOutputName = currentScriptFile.getParent() + "/" + (String)command.getArg();
+        if (!stdio) {
+        String parent = currentScriptFile.getParent();
+        currentOutputName = (parent == null ? "." : parent) + "/" + (String)command.getArg();
         resetOutputFile();
         if (gui != null)
             gui.setOutputFile(currentOutputName);
+        }
     }
 
     // Executes the controller's compare-to command.
     private void doCompareToCommand(Command command) throws ControllerException {
-        currentComparisonName = currentScriptFile.getParent() + "/" + (String)command.getArg();
+        if (!stdio) {
+        String parent = currentScriptFile.getParent();
+        currentComparisonName = (parent == null ? "." : parent) + "/" + (String)command.getArg();
         resetComparisonFile();
         if (gui != null)
             gui.setComparisonFile(currentComparisonName);
+        }
     }
 
     // Executes the controller's output-list command.
     private void doOutputListCommand(Command command) throws ControllerException {
-        if (output == null)
+        if (!stdio && output == null)
             throw new ControllerException("No output file specified");
 
         varList = (VariableFormat[])command.getArg();
@@ -591,7 +629,7 @@ public class HackController
 
     // Executes the controller's output command.
     private void doOutputCommand(Command command) throws ControllerException, VariableException {
-        if (output == null)
+        if (!stdio && output == null)
             throw new ControllerException("No output file specified");
 
         StringBuffer line = new StringBuffer("|");
@@ -679,8 +717,13 @@ public class HackController
     }
 
     // Ouputs the given line into the output file and compares it to the current
-    // compare file (if exists)
+    // compare file (if exists and not using standar input / standard output)
     private void outputAndCompare(String line) throws ControllerException {
+        if (stdio) { 
+          System.out.println(line);
+          outputLinesCounter++;
+        }
+        else {
         output.println(line);
         output.flush();
 
@@ -711,9 +754,32 @@ public class HackController
                 throw new ControllerException("Could not read comparison file");
             }
         }
+        }
     }
 
-    // loads the given script file and restarts the GUI.
+    // loads the script form standar input and restarts the GUI.
+    protected void loadNewScript(boolean displayMessage)
+     throws ControllerException, ScriptException {
+        script = new Script();
+        breakpoints.removeAllElements();
+        currentCommandIndex = 0;
+        output = null;
+        currentOutputName = "";
+        comparisonFile = null;
+        currentComparisonName = "";
+
+        if (gui != null) {
+            gui.setOutputFile("");
+            gui.setComparisonFile("");
+            gui.setBreakpoints(breakpoints);
+            gui.setCurrentScriptLine(script.getLineNumberAt(0));
+        }
+
+        if (displayMessage)
+            displayMessage("New script loaded from standard input", false);
+    }
+
+// loads the given script file and restarts the GUI.
     protected void loadNewScript(File file, boolean displayMessage)
      throws ControllerException, ScriptException {
         currentScriptFile = file;

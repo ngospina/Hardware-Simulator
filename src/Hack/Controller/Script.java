@@ -50,6 +50,19 @@ public class Script {
     private ScriptTokenizer input;
 
     /**
+     * Constructs a new script to read the script from standard input.
+     * Simulator commands will be executed and variable values will be
+     * fetched and set using the given hack simulator.
+     */
+    public Script()
+     throws ScriptException, ControllerException {
+        input = new ScriptTokenizer();
+        commands = new Vector();
+        lineNumbers = new Vector();
+        buildScript();
+    }
+
+    /**
      * Constructs a new script according to the given script file.
      * Simulator commands will be executed and variable values will be
      * fetched and set using the given hack simulator.

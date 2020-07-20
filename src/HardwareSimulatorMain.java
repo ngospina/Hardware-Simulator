@@ -32,20 +32,8 @@ public class HardwareSimulatorMain
   public static void main(String[] args) {
         if (args.length > 1)
             System.err.println("Usage: java HardwareSimulatorMain [script name]");
-        else if (args.length == 0) {
-            try {
-                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-            } catch (Exception e) {
-            }
-
-            HardwareSimulatorGUI simulatorGUI = new HardwareSimulatorComponent();
-            HardwareSimulatorControllerGUI controllerGUI = new HardwareSimulatorControllerComponent();
-
-            HardwareSimulatorApplication application =
-                new HardwareSimulatorApplication(controllerGUI, simulatorGUI,
-                                                 "bin/scripts/defaultHW.txt",
-                                                 "bin/help/hwUsage.html", "bin/help/hwAbout.html");
-        }
+        else if (args.length == 0) 
+            new HackController(new HardwareSimulator());
         else
             new HackController(new HardwareSimulator(), args[0]);
     }
