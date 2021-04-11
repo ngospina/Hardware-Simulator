@@ -1,0 +1,1 @@
+java -jar ..\dist\HardwareSimulator.jar Xor.tst

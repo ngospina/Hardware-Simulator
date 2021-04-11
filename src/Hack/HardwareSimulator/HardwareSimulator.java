@@ -299,13 +299,13 @@ public class HardwareSimulator extends HackSimulator
     }
 
     /*
-     * Returns true if the width of the given value is less or equal to the width
+     * Returns true if the width of the given value is equal to the width
      * of the given pin (name).
      */
     private boolean isLegalWidth(String pinName, short value) {
         byte maxWidth = gate.getGateClass().getPinInfo(pinName).width;
         byte width = (byte)(value > 0 ? (int)(Math.log(value) / Math.log(2)) + 1 : 1);
-        return (width <= maxWidth);
+        return (width == maxWidth);
     }
 
     /**
