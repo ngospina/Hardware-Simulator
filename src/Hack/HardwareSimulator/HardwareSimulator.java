@@ -240,7 +240,8 @@ public class HardwareSimulator extends HackSimulator
             throw new VariableException("cannot get var's value since no gate is currently loaded", varName);
 
         short numValue;
-
+        short bitLength = Conversions.bitLength(value);
+        
         try {
             value = Conversions.toDecimalForm(value);
             numValue = Short.parseShort(value);
@@ -260,7 +261,7 @@ public class HardwareSimulator extends HackSimulator
                 if (type != GateClass.INPUT_PIN_TYPE)
                     readOnly = true;
                 else {
-                    if (!isLegalWidth(varName, numValue))
+                    if (!isLegalWidth(varName, numValue, bitLength))
                         throw new VariableException(value + " doesn't fit in the pin's width",
                                                     varName);
                     else
@@ -299,13 +300,18 @@ public class HardwareSimulator extends HackSimulator
     }
 
     /*
-     * Returns true if the width of the given value is equal to the width
+     * Returns true if the width of the given value is less or equal to the width
      * of the given pin (name).
      */
-    private boolean isLegalWidth(String pinName, short value) {
+    private boolean isLegalWidth(String pinName, short value, short bitLength) {
         byte maxWidth = gate.getGateClass().getPinInfo(pinName).width;
-        byte width = (byte)(value > 0 ? (int)(Math.log(value) / Math.log(2)) + 1 : 1);
-        return (width == maxWidth);
+        if (bitLength > 0)
+            return (bitLength == maxWidth);
+        else
+        {
+            byte width = (byte)(value > 0 ? (int)(Math.log(value) / Math.log(2)) + 1 : 1);
+            return (width <= maxWidth);
+        }
     }
 
     /**

@@ -1,1 +1,1 @@
-java -jar ..\dist\HardwareSimulator.jar Xor.tst
+java -jar ..\dist\HardwareSimulator.jar memory.tst

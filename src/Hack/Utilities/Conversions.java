@@ -36,12 +36,26 @@ public class Conversions {
     private static final int[] powersOf16 = {1,16,256,4096,65536,1048576,16777216,268435456};
 
     /**
+     * If the given string starts with %EB return the length in bits.
+     * Otherwise, return 0.
+     */
+    public static short bitLength(String value) {
+        short len = 0;
+        
+        if (value.startsWith("%EB"))
+            len = (short) (value.length() - 3);
+        return len;
+    }
+    
+    /**
      * If the given string starts with %X, %B or %D translates it to a normal decimal form.
      * If the given string is a decimal number, translates it into a normal decimal form.
      * Otherwise, return the given string as is.
      */
     public static String toDecimalForm(String value) {
-        if (value.startsWith("%B"))
+        if ( value.startsWith("%EB"))
+            value = String.valueOf(binaryToInt(value.substring(3)));
+        else if (value.startsWith("%B"))
             value = String.valueOf(binaryToInt(value.substring(2)));
         else if (value.startsWith("%X")) {
             if (value.length() == 6)
